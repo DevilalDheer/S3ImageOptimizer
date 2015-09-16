@@ -36,5 +36,8 @@ module ImageOpt
 
     # Use default logging formatter so that PID and timestamp are not suppressed.
     config.log_formatter = ::Logger::Formatter.new
+    
+    config.active_job.queue_adapter = :delayed_job
+
   end
 end

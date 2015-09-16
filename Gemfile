@@ -14,3 +14,4 @@ gem 'image_optim'
 gem 'image_optim_pack'
 # File mime type detection gem
 gem 'mimemagic'
+gem 'delayed_job_active_record'

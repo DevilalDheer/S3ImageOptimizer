@@ -58,7 +58,7 @@ class OptimizeImageJob < ActiveJob::Base
 
   def optimize_upload(file, image, content_type)
     image.original_size = file.size
-    image_optim = ImageOptim.new(:pngout => false, :svgo => false)
+    image_optim = ImageOptim.new(:nice => 20,:pngout => false, :svgo => false, :max_quality => 70, :verbose => true)
     image_optim.optimize_image!(file)
     if file.size < image.original_size.to_i && s3_upload(image.path, file.path, content_type)
       image.modified = true

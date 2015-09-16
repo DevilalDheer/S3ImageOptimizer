@@ -23,7 +23,7 @@ default: &default
 
 development:
   <<: *default
-  database: <%= ENV['IMAGE_OPT_DATABASE'] %>
-  username: <%= ENV['IMAGE_OPT_DATABASE_USERNAME'] %>
-  password: <%= ENV['IMAGE_OPT_DATABASE_PASSWORD'] %>
-  host: <%= ENV['IMAGE_OPT_DATABASE_HOST'] %>
+  database: s3dataoptimzer
+  username: shailesh
+  password: 
+  host: 

@@ -1,0 +1,9 @@
+#image_optim.yml
+nice: 20
+pngout: false # disable
+svgo: false
+optipng:
+  level: 5
+
+jpegoptim:
+	max_quality: 70

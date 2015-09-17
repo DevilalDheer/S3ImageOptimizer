@@ -14,12 +14,12 @@ class OptimizeImageJob < ActiveJob::Base
         s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
         file = create_file(s3_object.body, image.path)
         if (content_type = get_content_type(file)).match(/\/(jpg|jpeg)$/)
-          if (s3_object.metadata["#{METATAG}"].nil? || s3_object.metadata["#{METATAG}"] != 'Y')
+          # if (s3_object.metadata["#{METATAG}"].nil? || s3_object.metadata["#{METATAG}"] != 'Y')
             optimize_upload_for_mobile(file, image, content_type)
-          else
-            image.optimized = true
-            image.save
-          end
+          # else
+          #   image.optimized = true
+          #   image.save
+          # end
         else
           image.delete
         end
@@ -74,15 +74,17 @@ class OptimizeImageJob < ActiveJob::Base
     # image_optim = ImageOptim.new(pngout: false, svgo: false, verbose: true, jpegoptim: {max_quality: 70})
     # image_optim.optimize_image!(file)
     img = Magick::Image::read(file.path).first
-    img.write(file.path) {self.quality = 70}
-    image.path = image.path.sub "_large.", "_large_m."
+    imagepath = image.path.sub "_large.", "_large_m."
+    temp_file = Tempfile.new(File.basename imagepath)
+    img.write(temp_file.path) {self.quality = 70}
 
-    if file.size < image.original_size.to_i && s3_upload(image.path, file.path, content_type)
+    uploadfilefrompath = temp_file.size < image.original_size.to_i ? temp_file.path : file.path
+
+    if s3_upload(imagepath, uploadfilefrompath, content_type)
       image.modified = true
-      image.current_size = file.size
+      image.current_size = temp_file.size < image.original_size.to_i ? temp_file.size : file.size
       invalidate_cloudfront('/' + image.path) if image.dir_path.invalidate_cloudfront
     end
-
     image.optimized = true
     image.save
   end

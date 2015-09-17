@@ -23,7 +23,7 @@ default: &default
 
 development:
   <<: *default
-  database: s3dataoptimzer
-  username: shailesh
+  database: s3optimizer
+  username: postgres
   password: 
   host: 

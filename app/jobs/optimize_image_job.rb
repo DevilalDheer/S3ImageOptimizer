@@ -15,7 +15,7 @@ class OptimizeImageJob < ActiveJob::Base
         file = create_file(s3_object.body, image.path)
         if (content_type = get_content_type(file)).match(/\/(jpg|jpeg)$/)
           if (s3_object.metadata["#{METATAG}"].nil? || s3_object.metadata["#{METATAG}"] != 'Y')
-            optimize_upload(file, image, content_type)
+            optimize_upload_for_mobile(file, image, content_type)
           else
             image.optimized = true
             image.save
@@ -58,7 +58,7 @@ class OptimizeImageJob < ActiveJob::Base
 
   def optimize_upload(file, image, content_type)
     image.original_size = file.size
-    image_optim = ImageOptim.new(:nice => 20,:pngout => false, :svgo => false, :max_quality => 70, :verbose => true)
+    image_optim = ImageOptim.new(pngout: false, svgo: false, verbose: true, jpegoptim: {max_quality: 70})
     image_optim.optimize_image!(file)
     if file.size < image.original_size.to_i && s3_upload(image.path, file.path, content_type)
       image.modified = true
@@ -68,4 +68,23 @@ class OptimizeImageJob < ActiveJob::Base
     image.optimized = true
     image.save
   end
+
+  def optimize_upload_for_mobile(file, image, content_type)
+    image.original_size = file.size
+    # image_optim = ImageOptim.new(pngout: false, svgo: false, verbose: true, jpegoptim: {max_quality: 70})
+    # image_optim.optimize_image!(file)
+    img = Magick::Image::read(file.path).first
+    img.write(file.path) {self.quality = 70}
+    image.path = image.path.sub "_large.", "_large_m."
+
+    if file.size < image.original_size.to_i && s3_upload(image.path, file.path, content_type)
+      image.modified = true
+      image.current_size = file.size
+      invalidate_cloudfront('/' + image.path) if image.dir_path.invalidate_cloudfront
+    end
+
+    image.optimized = true
+    image.save
+  end
+
 end

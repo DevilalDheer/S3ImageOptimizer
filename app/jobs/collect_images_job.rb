@@ -7,7 +7,7 @@ class CollectImagesJob < ActiveJob::Base
   def perform(id)
     dir_path = DirPath.find_by_id(id)
     if dir_path.present?
-      aws_image_list = S3Bucket.objects(:prefix => dir_path.path).collect(&:key).select{ |aws_image| aws_image[/_large\./] }
+      aws_image_list = S3Bucket.objects(:prefix => dir_path.path).collect(&:key).select{ |aws_image| aws_image[/_original\./] }
       aws_image_list.each {|aws_image| dir_path.images.create(:path => aws_image)} if aws_image_list.present?
     end
   end

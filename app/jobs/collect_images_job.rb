@@ -7,8 +7,14 @@ class CollectImagesJob < ActiveJob::Base
   def perform(id)
     dir_path = DirPath.find_by_id(id)
     if dir_path.present?
-      aws_image_list = S3Bucket.objects(:prefix => dir_path.path).collect(&:key).select{ |aws_image| aws_image[/_zoom\./] }
-      aws_image_list.each {|aws_image| dir_path.images.create(:path => aws_image)} if aws_image_list.present?
+      aws_image_list = S3Bucket.objects(:prefix => dir_path.path).collect(&:key)
+      aws_image_list_large = aws_image_list.select{ |aws_image| aws_image[/_large_m\./] }
+      # puts aws_image_list_large
+      if aws_image_list_large.blank?
+        aws_image_list_l = aws_image_list.select{ |aws_image| aws_image[/_large\./] }
+        # puts aws_image_list_l
+        aws_image_list_l.each {|aws_image| dir_path.images.create(:path => aws_image)} if aws_image_list_l.present?
+      end
     end
   end
 end

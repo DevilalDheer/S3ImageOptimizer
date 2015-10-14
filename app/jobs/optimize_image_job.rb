@@ -74,10 +74,10 @@ class OptimizeImageJob < ActiveJob::Base
     # image_optim = ImageOptim.new(pngout: false, svgo: false, verbose: true, jpegoptim: {max_quality: 70})
     # image_optim.optimize_image!(file)
     img = Magick::Image::read(file.path).first
-    # imagepath = image.path.sub "_large.", "_large_m."
-    imagepath = image.path.sub "_zoom.", "_zoom."
+    imagepath = image.path.sub "_large.", "_large_m."
+    # imagepath = image.path.sub "_zoom.", "_zoom."
     temp_file = Tempfile.new(File.basename imagepath)
-    img.resize_to_fit!(800,1100)
+    # img.resize_to_fit!(800,1100)
     img.write(temp_file.path) do
       self.quality = 70
       self.interlace = Magick::PlaneInterlace
@@ -92,23 +92,23 @@ class OptimizeImageJob < ActiveJob::Base
     end
     image.optimized = true
     image.save
-# ------------
-    imagepath = image.path.sub "_zoom.", "_small_m."
-    temp_file = Tempfile.new(File.basename imagepath)
-    img.resize_to_fit!(225,257)
-    img.write(temp_file.path) do
-      self.quality = 70
-      self.interlace = Magick::PlaneInterlace
-    end
+# # ------------
+#     imagepath = image.path.sub "_zoom.", "_small_m."
+#     temp_file = Tempfile.new(File.basename imagepath)
+#     img.resize_to_fit!(225,257)
+#     img.write(temp_file.path) do
+#       self.quality = 70
+#       self.interlace = Magick::PlaneInterlace
+#     end
 
-    uploadfilefrompath = temp_file.size < image.original_size.to_i ? temp_file.path : file.path
+#     uploadfilefrompath = temp_file.size < image.original_size.to_i ? temp_file.path : file.path
 
-    if s3_upload(imagepath, uploadfilefrompath, content_type)
-      image.modified = true
-      # image.current_size = temp_file.size < image.original_size.to_i ? temp_file.size : file.size
-      invalidate_cloudfront('/' + image.path) if image.dir_path.invalidate_cloudfront
-    end
-    image.optimized = true
-    image.save
+#     if s3_upload(imagepath, uploadfilefrompath, content_type)
+#       image.modified = true
+#       # image.current_size = temp_file.size < image.original_size.to_i ? temp_file.size : file.size
+#       invalidate_cloudfront('/' + image.path) if image.dir_path.invalidate_cloudfront
+#     end
+#     image.optimized = true
+#     image.save
   end
 end

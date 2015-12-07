@@ -10,6 +10,16 @@ class OptimizeImageJob < ActiveJob::Base
   def perform(id)
     image = Image.find_by_id(id)
     if image.present?
+      s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
+      image.content_type = s3_object.content_type
+      image.save
+    end
+  end
+
+
+  def perform_v1(id)
+    image = Image.find_by_id(id)
+    if image.present?
       begin
         s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
         file = create_file(s3_object.body, image.path)

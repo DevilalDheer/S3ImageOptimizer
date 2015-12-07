@@ -11,10 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150916124305) do
+ActiveRecord::Schema.define(version: 20151205071759) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "tablefunc"
+  enable_extension "adminpack"
 
   create_table "delayed_jobs", force: :cascade do |t|
     t.integer  "priority",   default: 0, null: false
@@ -50,6 +52,13 @@ ActiveRecord::Schema.define(version: 20150916124305) do
     t.integer  "dir_path_id",                   null: false
     t.datetime "created_at",                    null: false
     t.datetime "updated_at",                    null: false
+    t.boolean  "original"
+    t.boolean  "zoom"
+    t.boolean  "large"
+    t.boolean  "small"
+    t.boolean  "small_m"
+    t.boolean  "large_m"
+    t.string   "content_type"
   end
 
   add_index "images", ["dir_path_id"], name: "index_images_on_dir_path_id", using: :btree

@@ -18,6 +18,27 @@ ActiveRecord::Schema.define(version: 20151205071759) do
   enable_extension "tablefunc"
   enable_extension "adminpack"
 
+  create_table "aws_images", force: :cascade do |t|
+    t.string   "path",                          null: false
+    t.string   "original_size"
+    t.string   "current_size"
+    t.boolean  "optimized",     default: false, null: false
+    t.boolean  "modified",      default: false, null: false
+    t.integer  "dir_path_id",                   null: false
+    t.datetime "created_at",                    null: false
+    t.datetime "updated_at",                    null: false
+    t.boolean  "original"
+    t.boolean  "zoom"
+    t.boolean  "large"
+    t.boolean  "small"
+    t.boolean  "small_m"
+    t.boolean  "large_m"
+    t.string   "content_type"
+  end
+
+  add_index "aws_images", ["dir_path_id"], name: "index_aws_images_on_dir_path_id", using: :btree
+  add_index "aws_images", ["path"], name: "index_aws_images_on_path", unique: true, using: :btree
+
   create_table "delayed_jobs", force: :cascade do |t|
     t.integer  "priority",   default: 0, null: false
     t.integer  "attempts",   default: 0, null: false
@@ -43,26 +64,5 @@ ActiveRecord::Schema.define(version: 20151205071759) do
 
   add_index "dir_paths", ["path"], name: "index_dir_paths_on_path", unique: true, using: :btree
 
-  create_table "images", force: :cascade do |t|
-    t.string   "path",                          null: false
-    t.string   "original_size"
-    t.string   "current_size"
-    t.boolean  "optimized",     default: false, null: false
-    t.boolean  "modified",      default: false, null: false
-    t.integer  "dir_path_id",                   null: false
-    t.datetime "created_at",                    null: false
-    t.datetime "updated_at",                    null: false
-    t.boolean  "original"
-    t.boolean  "zoom"
-    t.boolean  "large"
-    t.boolean  "small"
-    t.boolean  "small_m"
-    t.boolean  "large_m"
-    t.string   "content_type"
-  end
-
-  add_index "images", ["dir_path_id"], name: "index_images_on_dir_path_id", using: :btree
-  add_index "images", ["path"], name: "index_images_on_path", unique: true, using: :btree
-
-  add_foreign_key "images", "dir_paths"
+  add_foreign_key "aws_images", "dir_paths"
 end

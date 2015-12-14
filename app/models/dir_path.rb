@@ -1,6 +1,6 @@
 class DirPath < ActiveRecord::Base
   after_create :collect_images
-  has_many :images
+  has_many :aws_images
   validate :path_structure
   validates_uniqueness_of :path
 

@@ -8,37 +8,91 @@ class OptimizeImageJob < ActiveJob::Base
   CACHECONTROL = ImageOpt::Application.config.aws_image[:cachecontrol]
 
   def perform(id)
-    image = Image.find_by_id(id)
+    image = AwsImage.find_by_id(id)
     if image.present?
-      s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
-      image.content_type = s3_object.content_type
-      image.save
-    end
-  end
-
-
-  def perform_v1(id)
-    image = Image.find_by_id(id)
-    if image.present?
-      begin
-        s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
-        file = create_file(s3_object.body, image.path)
-        if (content_type = get_content_type(file)).match(/\/(jpg|jpeg)$/)
-          # if (s3_object.metadata["#{METATAG}"].nil? || s3_object.metadata["#{METATAG}"] != 'Y')
-            optimize_upload_for_mobile(file, image, content_type)
-          # else
-          #   image.optimized = true
-          #   image.save
-          # end
-        else
-          image.delete
+      # s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
+      # image.content_type = s3_object.content_type
+      # image.save
+      if not (image.zoom &&  image.large_m && image.small_m)
+        if not image.zoom
+          optimize_upload_zoom_for_mobile(image)
         end
-        file.delete
-      rescue Aws::S3::Errors::NoSuchKey
-        image.delete
+        if not image.large_m
+          optimize_upload_large_for_mobile(image)
+        end
+        if not image.small_m
+          optimize_upload_small_for_mobile(image)
+        end
       end
     end
   end
+
+  def optimize_upload_zoom_for_mobile(image)
+    s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
+    file = create_file(s3_object.body, image.path)
+    img = Magick::Image::read(file.path).first
+    imagepath = image.path.sub "_original.", "_zoom."
+    temp_file = Tempfile.new(File.basename imagepath)
+    img.resize_to_fit!(800,1100)
+    img.write(temp_file.path) do
+      self.quality = 70
+      self.interlace = Magick::PlaneInterlace
+    end
+    s3_upload(imagepath, temp_file.path,s3_object.content_type)
+  end
+
+  def optimize_upload_large_for_mobile(image)
+    imagepath = image.path.sub "_original.", "_large."
+    s3_object = S3Client.get_object({:key => imagepath, :bucket => BucketName})
+    file = create_file(s3_object.body, image.path)
+    img = Magick::Image::read(file.path).first
+    imagepath = image.path.sub "_original.", "_large_m."
+    temp_file = Tempfile.new(File.basename imagepath)
+    img.write(temp_file.path) do
+      self.quality = 70
+      self.interlace = Magick::PlaneInterlace
+    end
+    s3_upload(imagepath, temp_file.path,s3_object.content_type)
+  end
+
+  def optimize_upload_small_for_mobile(image)
+    imagepath = image.path.sub "_original.", "_zoom."
+    s3_object = S3Client.get_object({:key => imagepath, :bucket => BucketName})
+    file = create_file(s3_object.body, image.path)
+    img = Magick::Image::read(file.path).first
+    imagepath = image.path.sub "_original.", "_small_m."
+    temp_file = Tempfile.new(File.basename imagepath)
+    img.write(temp_file.path) do
+      self.quality = 70
+      self.interlace = Magick::PlaneInterlace
+    end
+    s3_upload(imagepath, temp_file.path,s3_object.content_type)
+  end
+
+
+
+  # def perform_v1(id)
+  #   image = AwsImage.find_by_id(id)
+  #   if image.present?
+  #     begin
+  #       s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
+  #       file = create_file(s3_object.body, image.path)
+  #       if (content_type = get_content_type(file)).match(/\/(jpg|jpeg)$/)
+  #         # if (s3_object.metadata["#{METATAG}"].nil? || s3_object.metadata["#{METATAG}"] != 'Y')
+  #           optimize_upload_for_mobile(file, image, content_type)
+  #         # else
+  #         #   image.optimized = true
+  #         #   image.save
+  #         # end
+  #       else
+  #         image.delete
+  #       end
+  #       file.delete
+  #     rescue Aws::S3::Errors::NoSuchKey
+  #       image.delete
+  #     end
+  #   end
+  # end
 
   def s3_upload(bucket_path, file, content_type)
     exp_httpdate = 10.years.from_now.httpdate

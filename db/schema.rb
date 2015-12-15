@@ -15,8 +15,6 @@ ActiveRecord::Schema.define(version: 20151205071759) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "tablefunc"
-  enable_extension "adminpack"
 
   create_table "aws_images", force: :cascade do |t|
     t.string   "path",                          null: false

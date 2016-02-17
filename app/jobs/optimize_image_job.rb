@@ -29,6 +29,9 @@ class OptimizeImageJob < ActiveJob::Base
         if not image.small_m
           optimize_upload_small_m_for_mobile(image)
         end
+        if not image.small_mo
+          optimize_upload_small_mo_for_mobile(image)
+        end
       end
     end
   end
@@ -102,6 +105,21 @@ class OptimizeImageJob < ActiveJob::Base
     img.resize_to_fit!(225,257)
     img.write(temp_file.path) do
       self.quality = 30
+      self.interlace = Magick::PlaneInterlace
+    end
+    s3_upload(imagepath, temp_file.path,s3_object.content_type)
+  end
+
+  def optimize_upload_small_mo_for_mobile(image)
+    imagepath = image.path.sub "_original.", "_zoom."
+    s3_object = S3Client.get_object({:key => imagepath, :bucket => BucketName})
+    file = create_file(s3_object.body, image.path)
+    img = Magick::Image::read(file.path).first
+    imagepath = image.path.sub "_original.", "_small_mo."
+    temp_file = Tempfile.new(File.basename imagepath)
+    img.resize_to_fit!(151,173)
+    img.write(temp_file.path) do
+      self.quality = 50
       self.interlace = Magick::PlaneInterlace
     end
     s3_upload(imagepath, temp_file.path,s3_object.content_type)

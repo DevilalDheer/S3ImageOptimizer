@@ -19,6 +19,7 @@ class CollectImagesJob < ActiveJob::Base
         image.large_m = aws_image_list.include?(image.path.sub "_original.", "_large_m.")
         image.small = aws_image_list.include?(image.path.sub "_original.", "_small.")
         image.small_m = aws_image_list.include?(image.path.sub "_original.", "_small_m.")
+        image.small_mo = aws_image_list.include?(image.path.sub "_original.", "_small_mo.")
         image.save
       end
     end

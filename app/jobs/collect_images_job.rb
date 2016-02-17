@@ -14,11 +14,6 @@ class CollectImagesJob < ActiveJob::Base
       aws_image_list_o.each do |o|
         image = dir_path.aws_images.create(:path => o)
         image.original=true
-        image.zoom = aws_image_list.include?(image.path.sub "_original.", "_zoom.")
-        image.large = aws_image_list.include?(image.path.sub "_original.", "_large.")
-        image.large_m = aws_image_list.include?(image.path.sub "_original.", "_large_m.")
-        image.small = aws_image_list.include?(image.path.sub "_original.", "_small.")
-        image.small_m = aws_image_list.include?(image.path.sub "_original.", "_small_m.")
         image.save
       end
     end

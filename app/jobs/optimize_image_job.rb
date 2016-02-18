@@ -13,26 +13,28 @@ class OptimizeImageJob < ActiveJob::Base
       # s3_object = S3Client.get_object({:key => image.path, :bucket => BucketName})
       # image.content_type = s3_object.content_type
       # image.save
-      if not (image.zoom &&  image.large_m &&  image.large && image.small_m &&  image.small)
-        if not image.zoom
-          optimize_upload_zoom_for_mobile(image)
-        end
-        if not image.large
-          optimize_upload_large_for_mobile(image)
-        end
-        if not image.small
-          optimize_upload_small_for_mobile(image)
-        end
-        if not image.large_m
-          optimize_upload_large_m_for_mobile(image)
-        end 
-        if not image.small_m
-          optimize_upload_small_m_for_mobile(image)
-        end
-        if not image.small_mo
-          optimize_upload_small_mo_for_mobile(image)
-        end
-      end
+
+      optimize_upload_small_mo_for_mobile(image)
+      # if not (image.zoom &&  image.large_m &&  image.large && image.small_m &&  image.small)
+      #   if not image.zoom
+      #     optimize_upload_zoom_for_mobile(image)
+      #   end
+      #   if not image.large
+      #     optimize_upload_large_for_mobile(image)
+      #   end
+      #   if not image.small
+      #     optimize_upload_small_for_mobile(image)
+      #   end
+      #   if not image.large_m
+      #     optimize_upload_large_m_for_mobile(image)
+      #   end
+      #   if not image.small_m
+      #     optimize_upload_small_m_for_mobile(image)
+      #   end
+      #   if not image.small_mo
+      #     optimize_upload_small_mo_for_mobile(image)
+      #   end
+      # end
     end
   end
 
